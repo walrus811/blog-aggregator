@@ -1,12 +1,18 @@
 package main
 
 import (
-	"encoding/json"
+	"database/sql"
 	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/walrus811/blog-aggregator/internal/database"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	envLoadErr := godotenv.Load()
@@ -16,28 +22,27 @@ func main() {
 	}
 
 	port := os.Getenv("PORT")
+	dbURL := os.Getenv("DATABASE_URL")
+
+	db, dbOpenERr := sql.Open("postgres", dbURL)
+
+	if dbOpenERr != nil {
+		panic(dbOpenERr)
+	}
+
+	dbQueries := database.New(db)
+
+	apiConfig := &apiConfig{
+		DB: dbQueries,
+	}
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/v1/healthz", func(w http.ResponseWriter, r *http.Request) {
-		respondWithJson(w, http.StatusOK, map[string]string{"status": "ok"})
-	})
+	mux.HandleFunc("/v1/healthz", handlerReadiness)
+	mux.HandleFunc("/v1/err", handlerErr)
 
-	mux.HandleFunc("/v1/err", func(w http.ResponseWriter, r *http.Request) {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
-	})
+	mux.HandleFunc("GET /v1/users", apiConfig.handlerGetUserByApiKey)
+	mux.HandleFunc("POST /v1/users", apiConfig.handlerUsersCreate)
 
 	http.ListenAndServe(":"+port, mux)
-}
-
-func respondWithJson(w http.ResponseWriter, code int, payload interface{}) {
-	response, _ := json.Marshal(payload)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
-}
-
-func respondWithError(w http.ResponseWriter, code int, msg string) {
-	respondWithJson(w, code, map[string]string{"error": msg})
 }
