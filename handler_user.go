@@ -10,7 +10,7 @@ import (
 	"github.com/walrus811/blog-aggregator/internal/database"
 )
 
-func (cfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request, user database.User) {
+func handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request, user database.User) {
 	resObj := CraeteUserResponse{
 		ID:        user.ID,
 		CreatedAt: user.CreatedAt,
