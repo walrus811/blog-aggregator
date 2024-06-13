@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -35,7 +33,7 @@ func (cfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Requ
 	respondWithJSON(w, http.StatusOK, resObj)
 }
 
-func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	reqObj := CreateUserRequest{}
 	reqDecodeErr := decoder.Decode(&reqObj)
@@ -84,16 +82,4 @@ type CraeteUserResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	ApiKey    string    `json:"api_key"`
-}
-
-func generateApiKey() (string, error) {
-	return generateRandomString(32)
-}
-
-func generateRandomString(length int) (string, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
 }

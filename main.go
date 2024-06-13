@@ -42,7 +42,7 @@ func main() {
 	mux.HandleFunc("/v1/err", handlerErr)
 
 	mux.HandleFunc("GET /v1/users", apiConfig.handlerGetUserByApiKey)
-	mux.HandleFunc("POST /v1/users", apiConfig.handlerUsersCreate)
+	mux.HandleFunc("POST /v1/users", apiConfig.handlerCreateUser)
 
 	http.ListenAndServe(":"+port, mux)
 }
