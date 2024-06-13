@@ -41,7 +41,7 @@ func main() {
 	mux.HandleFunc("/v1/healthz", handlerReadiness)
 	mux.HandleFunc("/v1/err", handlerErr)
 
-	mux.HandleFunc("GET /v1/users", apiConfig.handlerGetUserByApiKey)
+	mux.HandleFunc("GET /v1/users", apiConfig.middlewareAuth(apiConfig.handlerGetUserByApiKey))
 	mux.HandleFunc("POST /v1/users", apiConfig.handlerCreateUser)
 
 	http.ListenAndServe(":"+port, mux)

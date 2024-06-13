@@ -10,19 +10,7 @@ import (
 	"github.com/walrus811/blog-aggregator/internal/database"
 )
 
-func (cfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request) {
-	apiKey, getApiKeyErr := getApiKey(r.Header)
-	if getApiKeyErr != nil {
-		respondWithError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-
-	user, err := cfg.DB.GetUserByApiKey(r.Context(), apiKey)
-	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Not Found")
-		return
-	}
-
+func (cfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request, user database.User) {
 	resObj := CraeteUserResponse{
 		ID:        user.ID,
 		CreatedAt: user.CreatedAt,
