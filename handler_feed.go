@@ -9,6 +9,20 @@ import (
 	"github.com/walrus811/blog-aggregator/internal/database"
 )
 
+func (cfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
+	feeds, getFeedsErr := cfg.DB.GetFeeds(r.Context())
+	if getFeedsErr != nil {
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	resObj := GetFeedsResponse{
+		Result: feeds,
+	}
+
+	respondWithJSON(w, http.StatusOK, resObj)
+}
+
 func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	decoder := json.NewDecoder(r.Body)
 	reqObj := CreateFeedRequest{}
@@ -41,6 +55,10 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 	}
 
 	respondWithJSON(w, http.StatusCreated, resObj)
+}
+
+type GetFeedsResponse struct {
+	Result []database.Feed `json:"result"`
 }
 
 type CreateFeedRequest struct {

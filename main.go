@@ -44,6 +44,7 @@ func main() {
 	mux.HandleFunc("GET /v1/users", apiConfig.middlewareAuth(handlerGetUserByApiKey))
 	mux.HandleFunc("POST /v1/users", apiConfig.handlerCreateUser)
 
+	mux.HandleFunc("GET /v1/feeds",apiConfig.handlerGetFeeds)
 	mux.HandleFunc("POST /v1/feeds", apiConfig.middlewareAuth(apiConfig.handlerCreateFeed))
 
 	http.ListenAndServe(":"+port, mux)
