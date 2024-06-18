@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/walrus811/blog-aggregator/internal/database"
+	"github.com/walrus811/blog-aggregator/internal/utils"
 )
 
 func handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -18,7 +19,7 @@ func handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request, user databas
 		Name:      user.Name,
 		ApiKey:    user.ApiKey,
 	}
-	respondWithJSON(w, http.StatusOK, resObj)
+	utils.RespondWithJSON(w, http.StatusOK, resObj)
 }
 
 func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +27,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	reqObj := CreateUserRequest{}
 	reqDecodeErr := decoder.Decode(&reqObj)
 	if reqDecodeErr != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
@@ -38,7 +39,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	})
 	if createUserErr != nil {
 		log.Printf("Responding with 5XX error: %s", createUserErr)
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -49,7 +50,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		Name:      user.Name,
 		ApiKey:    user.ApiKey,
 	}
-	respondWithJSON(w, http.StatusCreated, resObj)
+	utils.RespondWithJSON(w, http.StatusCreated, resObj)
 }
 
 type GetUserByApiKeyResponse struct {

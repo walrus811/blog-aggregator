@@ -7,16 +7,17 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/walrus811/blog-aggregator/internal/database"
+	"github.com/walrus811/blog-aggregator/internal/utils"
 )
 
 func (cfg *apiConfig) handlerGetFeedFollows(w http.ResponseWriter, r *http.Request, user database.User) {
 	feedFollows, getFeedFollowsErr := cfg.DB.GetFeedFollows(r.Context(), user.ID)
 	if getFeedFollowsErr != nil {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, feedFollows)
+	utils.RespondWithJSON(w, http.StatusOK, feedFollows)
 }
 
 func (cfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -24,7 +25,7 @@ func (cfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Req
 	reqObj := CreateFeedFollowRequest{}
 	reqDecodeErr := decoder.Decode(&reqObj)
 	if reqDecodeErr != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
@@ -36,7 +37,7 @@ func (cfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Req
 		UserID:    user.ID,
 	})
 	if createFeedFollowErr != nil {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -48,19 +49,19 @@ func (cfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Req
 		UserId:    feedFollow.UserID,
 	}
 
-	respondWithJSON(w, http.StatusCreated, resObj)
+	utils.RespondWithJSON(w, http.StatusCreated, resObj)
 }
 
 func (cfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
 	feedFollowID := r.PathValue("feedFollowID")
 	if feedFollowID == "" {
-		respondWithError(w, http.StatusBadRequest, "Invalid feedFollowID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid feedFollowID")
 		return
 	}
 
 	feedFollowUUID, feedFollowUUIDErr := uuid.Parse(feedFollowID)
 	if feedFollowUUIDErr != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid feedFollowID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid feedFollowID")
 		return
 	}
 
@@ -70,11 +71,11 @@ func (cfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Req
 	})
 
 	if deleteFeedFollowErr != nil {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
-	respondWithJSON(w, http.StatusNoContent, nil)
+	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }
 
 type CreateFeedFollowRequest struct {

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/walrus811/blog-aggregator/internal/database"
+	"github.com/walrus811/blog-aggregator/internal/utils"
 )
 
 type authedHandler func(http.ResponseWriter, *http.Request, database.User)
@@ -14,13 +15,13 @@ func (cfg *apiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiKey, getApiKeyErr := getApiKey(r.Header)
 		if getApiKeyErr != nil {
-			respondWithError(w, http.StatusUnauthorized, "Unauthorized")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		}
 
 		user, getUserErr := cfg.DB.GetUserByApiKey(r.Context(), apiKey)
 		if getUserErr != nil {
-			respondWithError(w, http.StatusUnauthorized, "Unauthorized")
+			utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		}
 

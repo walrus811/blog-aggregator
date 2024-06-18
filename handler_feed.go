@@ -7,12 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/walrus811/blog-aggregator/internal/database"
+	"github.com/walrus811/blog-aggregator/internal/utils"
 )
 
 func (cfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
 	feeds, getFeedsErr := cfg.DB.GetFeeds(r.Context())
 	if getFeedsErr != nil {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -20,7 +21,7 @@ func (cfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
 		Result: feeds,
 	}
 
-	respondWithJSON(w, http.StatusOK, resObj)
+	utils.RespondWithJSON(w, http.StatusOK, resObj)
 }
 
 func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
@@ -28,7 +29,7 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 	reqObj := CreateFeedRequest{}
 	reqDecodeErr := decoder.Decode(&reqObj)
 	if reqDecodeErr != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
@@ -41,7 +42,7 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		UserID:    user.ID,
 	})
 	if createFeedErr != nil {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -53,7 +54,7 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		UserID:    user.ID,
 	})
 	if createFeedFollowErr != nil {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -62,7 +63,7 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		FeedFollows: feedFollow,
 	}
 
-	respondWithJSON(w, http.StatusCreated, resObj)
+	utils.RespondWithJSON(w, http.StatusCreated, resObj)
 }
 
 type GetFeedsResponse struct {
