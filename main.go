@@ -11,7 +11,8 @@ import (
 )
 
 type apiConfig struct {
-	DB *database.Queries
+	DB      *database.Queries
+	DBInner *sql.DB
 }
 
 func main() {
@@ -29,11 +30,12 @@ func main() {
 	if dbOpenERr != nil {
 		panic(dbOpenERr)
 	}
-
+	
 	dbQueries := database.New(db)
 
 	apiConfig := &apiConfig{
-		DB: dbQueries,
+		DB:      dbQueries,
+		DBInner: db,
 	}
 
 	mux := http.NewServeMux()
@@ -44,8 +46,12 @@ func main() {
 	mux.HandleFunc("GET /v1/users", apiConfig.middlewareAuth(handlerGetUserByApiKey))
 	mux.HandleFunc("POST /v1/users", apiConfig.handlerCreateUser)
 
-	mux.HandleFunc("GET /v1/feeds",apiConfig.handlerGetFeeds)
+	mux.HandleFunc("GET /v1/feeds", apiConfig.handlerGetFeeds)
 	mux.HandleFunc("POST /v1/feeds", apiConfig.middlewareAuth(apiConfig.handlerCreateFeed))
+
+	mux.HandleFunc("GET /v1/feed_follows", apiConfig.middlewareAuth(apiConfig.handlerGetFeedFollows))
+	mux.HandleFunc("POST /v1/feed_follows", apiConfig.middlewareAuth(apiConfig.handlerCreateFeedFollow))
+	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiConfig.middlewareAuth(apiConfig.handlerDeleteFeedFollow))
 
 	http.ListenAndServe(":"+port, mux)
 }

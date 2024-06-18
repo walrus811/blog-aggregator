@@ -45,13 +45,21 @@ func (cfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	feedFollow, createFeedFollowErr := cfg.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		FeedID:    feed.ID,
+		UserID:    user.ID,
+	})
+	if createFeedFollowErr != nil {
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
 	resObj := CreateFeedResponse{
-		ID:        feed.ID,
-		CreatedAt: feed.CreatedAt,
-		UpdatedAt: feed.UpdatedAt,
-		Name:      feed.Name,
-		Url:       feed.Url,
-		UserId:    feed.UserID,
+		Feed:        feed,
+		FeedFollows: feedFollow,
 	}
 
 	respondWithJSON(w, http.StatusCreated, resObj)
@@ -67,10 +75,6 @@ type CreateFeedRequest struct {
 }
 
 type CreateFeedResponse struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Name      string    `json:"name"`
-	Url       string    `json:"url"`
-	UserId    uuid.UUID `json:"user_id"`
+	Feed        database.Feed       `json:"feed"`
+	FeedFollows database.FeedFollow `json:"feed_follows"`
 }
