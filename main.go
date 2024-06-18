@@ -7,13 +7,8 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/walrus811/blog-aggregator/internal/database"
+	"github.com/walrus811/blog-aggregator/internal/api"
 )
-
-type apiConfig struct {
-	DB      *database.Queries
-	DBInner *sql.DB
-}
 
 func main() {
 	envLoadErr := godotenv.Load()
@@ -30,28 +25,23 @@ func main() {
 	if dbOpenERr != nil {
 		panic(dbOpenERr)
 	}
-	
-	dbQueries := database.New(db)
 
-	apiConfig := &apiConfig{
-		DB:      dbQueries,
-		DBInner: db,
-	}
+	apiConfig := api.New(db)
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/v1/healthz", handlerReadiness)
-	mux.HandleFunc("/v1/err", handlerErr)
+	mux.HandleFunc("/v1/healthz", api.HandlerReadiness)
+	mux.HandleFunc("/v1/err", api.HandlerErr)
 
-	mux.HandleFunc("GET /v1/users", apiConfig.middlewareAuth(handlerGetUserByApiKey))
-	mux.HandleFunc("POST /v1/users", apiConfig.handlerCreateUser)
+	mux.HandleFunc("GET /v1/users", apiConfig.MiddlewareAuth(apiConfig.HandlerGetUserByApiKey))
+	mux.HandleFunc("POST /v1/users", apiConfig.HandlerCreateUser)
 
-	mux.HandleFunc("GET /v1/feeds", apiConfig.handlerGetFeeds)
-	mux.HandleFunc("POST /v1/feeds", apiConfig.middlewareAuth(apiConfig.handlerCreateFeed))
+	mux.HandleFunc("GET /v1/feeds", apiConfig.HandlerGetFeeds)
+	mux.HandleFunc("POST /v1/feeds", apiConfig.MiddlewareAuth(apiConfig.HandlerCreateFeed))
 
-	mux.HandleFunc("GET /v1/feed_follows", apiConfig.middlewareAuth(apiConfig.handlerGetFeedFollows))
-	mux.HandleFunc("POST /v1/feed_follows", apiConfig.middlewareAuth(apiConfig.handlerCreateFeedFollow))
-	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiConfig.middlewareAuth(apiConfig.handlerDeleteFeedFollow))
+	mux.HandleFunc("GET /v1/feed_follows", apiConfig.MiddlewareAuth(apiConfig.HandlerGetFeedFollows))
+	mux.HandleFunc("POST /v1/feed_follows", apiConfig.MiddlewareAuth(apiConfig.HandlerCreateFeedFollow))
+	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiConfig.MiddlewareAuth(apiConfig.HandlerDeleteFeedFollow))
 
 	http.ListenAndServe(":"+port, mux)
 }

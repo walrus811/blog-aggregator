@@ -12,3 +12,6 @@ RETURNING *;
 
 -- name: GetFeeds :many
 SELECT * FROM feeds;
+
+-- name: DeleteFeedById :exec
+DELETE FROM feeds WHERE id = $1;
