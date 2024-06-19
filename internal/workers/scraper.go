@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/walrus811/blog-aggregator/internal/database"
 	"github.com/walrus811/blog-aggregator/internal/utils"
 )
@@ -44,7 +46,31 @@ func ScrapeRSSFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed)
 		return
 	}
 	for _, item := range fetched.Channel.Item {
-		log.Println("Processing item", item.Title)
+		publishedAt, parseErr := time.Parse(time.RFC1123Z, item.PubDate)
+		if parseErr != nil {
+			log.Println("Error parsing published at", item.Link, parseErr)
+			continue
+		}
+		_, createPostErr := db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: item.Description,
+			PublishedAt: publishedAt,
+			FeedID:      feed.ID,
+		})
+		if createPostErr != nil {
+			switch err := createPostErr.(type) {
+			case *pq.Error:
+				if err.Code != "23505" {
+					log.Println("Error creating post", createPostErr)
+				}
+			default:
+				log.Println("Error creating post", createPostErr)
+			}
+		}
 	}
 	log.Printf("Feed %s collected, %v posts found", feed.Name, len(fetched.Channel.Item))
 }
