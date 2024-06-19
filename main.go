@@ -27,21 +27,26 @@ func main() {
 	}
 
 	apiConfig := api.New(db)
+	mux := serverMux(*apiConfig)
 
+	http.ListenAndServe(":"+port, mux)
+}
+
+func serverMux(cfg api.ApiConfig) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/v1/healthz", api.HandlerReadiness)
 	mux.HandleFunc("/v1/err", api.HandlerErr)
 
-	mux.HandleFunc("GET /v1/users", apiConfig.MiddlewareAuth(apiConfig.HandlerGetUserByApiKey))
-	mux.HandleFunc("POST /v1/users", apiConfig.HandlerCreateUser)
+	mux.HandleFunc("GET /v1/users", cfg.MiddlewareAuth(cfg.HandlerGetUserByApiKey))
+	mux.HandleFunc("POST /v1/users", cfg.HandlerCreateUser)
 
-	mux.HandleFunc("GET /v1/feeds", apiConfig.HandlerGetFeeds)
-	mux.HandleFunc("POST /v1/feeds", apiConfig.MiddlewareAuth(apiConfig.HandlerCreateFeed))
+	mux.HandleFunc("GET /v1/feeds", cfg.HandlerGetFeeds)
+	mux.HandleFunc("POST /v1/feeds", cfg.MiddlewareAuth(cfg.HandlerCreateFeed))
 
-	mux.HandleFunc("GET /v1/feed_follows", apiConfig.MiddlewareAuth(apiConfig.HandlerGetFeedFollows))
-	mux.HandleFunc("POST /v1/feed_follows", apiConfig.MiddlewareAuth(apiConfig.HandlerCreateFeedFollow))
-	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiConfig.MiddlewareAuth(apiConfig.HandlerDeleteFeedFollow))
+	mux.HandleFunc("GET /v1/feed_follows", cfg.MiddlewareAuth(cfg.HandlerGetFeedFollows))
+	mux.HandleFunc("POST /v1/feed_follows", cfg.MiddlewareAuth(cfg.HandlerCreateFeedFollow))
+	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", cfg.MiddlewareAuth(cfg.HandlerDeleteFeedFollow))
 
-	http.ListenAndServe(":"+port, mux)
+	return mux
 }
